@@ -1,32 +1,25 @@
 'use client';
 
-import RecipeCard from '@/components/RecipeCard';
 import RecipeModal from '@/components/RecipeModal';
-import VisualConcierge from '@/components/VisualConcierge';
 import { Recipe } from '@/lib/types';
 import { useState } from 'react';
 
 export default function Home() {
-  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [query, setQuery] = useState('');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const addIngredient = (ing: string) => {
-    if (!ingredients.includes(ing)) {
-      setIngredients([...ingredients, ing]);
-    }
-  };
-
-  const removeIngredient = (ing: string) => {
-    setIngredients(ingredients.filter((i) => i !== ing));
-  };
-
-  const handleGenerate = async () => {
-    if (ingredients.length === 0) return;
+  const handleGenerate = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!query.trim()) return;
 
     setIsGenerating(true);
-    // Note: We do NOT clear recipes here, we append to them.
+
+    // Split query into ingredients for the API.
+    // Supports comma separation or space separation if commas are missing.
+    const rawIngredients = query.includes(',') ? query.split(',') : query.split(' ');
+    const ingredients = rawIngredients.map(s => s.trim()).filter(s => s.length > 0);
 
     try {
       const res = await fetch('/api/generate', {
@@ -38,100 +31,90 @@ export default function Home() {
       if (!res.ok) throw new Error('Generation failed');
 
       const newRecipe: Recipe = await res.json();
-
-      // Append new recipe to the top of the list
       setRecipes(prev => [newRecipe, ...prev]);
+      setSelectedRecipe(newRecipe); // Open modal directly
 
     } catch (error) {
       console.error(error);
-      alert('Failed to generate recipe. Please check your API keys in .env.local');
+      alert('Failed to generate recipe. Please check your system configuration.');
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const handleSurprise = () => {
+    const randomIngredients = ['Truffle, Wagyu', 'Saffron, Rice', 'Heirloom Tomato, Basil', 'Scallop, Lemon'];
+    setQuery(randomIngredients[Math.floor(Math.random() * randomIngredients.length)]);
+    setTimeout(() => {
+        const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+        handleGenerate(fakeEvent);
+    }, 100);
+  };
+
   return (
-    <main className="md:h-screen w-full md:overflow-hidden flex flex-col md:flex-row bg-[#080808] text-white">
+    <main className="min-h-screen w-full bg-[#FAFAFA] text-[#111111] flex flex-col font-sans selection:bg-[#D4AF37]/20">
 
-      {/* LEFT PANEL: Visual Concierge */}
-      <section className="w-full md:w-[450px] flex-shrink-0 flex flex-col border-r border-white/5 bg-[#080808] relative z-20 shadow-2xl">
-        <header className="h-20 flex items-center px-6 justify-between bg-transparent">
-          <div>
-            <h1 className="font-bold tracking-tight text-lg text-white">COOKNOW</h1>
-            <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-medium">Powered by BNXIT</span>
-          </div>
-          <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-blue-500 animate-pulse' : 'bg-green-500/50'}`} />
-        </header>
+      {/* HERO / SEARCH SECTION */}
+      <div className={`flex flex-col items-center w-full max-w-[900px] mx-auto transition-all duration-1000 ease-in-out ${recipes.length > 0 ? 'mt-32 scale-90 opacity-90' : 'mt-[30vh]'}`}>
 
-        <VisualConcierge
-          ingredients={ingredients}
-          onAdd={addIngredient}
-          onRemove={removeIngredient}
-          onGenerate={handleGenerate}
-          isGenerating={isGenerating}
-        />
-      </section>
-
-      {/* RIGHT PANEL: Recipe Grid */}
-      <section className="flex-1 min-h-screen md:min-h-0 relative bg-[#0a0a0a]">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none" />
-
-        {/* Loading Overlay */}
-        {isGenerating && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0a0a0a]/80 backdrop-blur-sm transition-all">
-             <div className="text-center">
-               <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6 mx-auto" />
-               <h3 className="text-xl font-light text-white mb-2 animate-pulse">Dreaming up a new variation...</h3>
-               <p className="text-sm text-white/40">Analyzing flavors • Generating Steps • Plating Dish</p>
-             </div>
-          </div>
-        )}
-
-        <div className="h-full md:overflow-y-auto custom-scrollbar p-6 md:p-12 pb-32">
-          <div className="max-w-7xl mx-auto pt-4 relative z-0">
-            {recipes.length > 0 ? (
-              <>
-                <div className="mb-10 animate-enter flex justify-between items-end">
-                  <div>
-                    <h2 className="text-2xl font-semibold text-white mb-1">Your Menu</h2>
-                    <p className="text-sm text-zinc-500">
-                      {recipes.length} unique {recipes.length === 1 ? 'creation' : 'creations'} generated.
-                    </p>
-                  </div>
-
-                  {!isGenerating && (
-                    <button
-                      onClick={handleGenerate}
-                      className="text-xs text-blue-400 hover:text-blue-300 uppercase tracking-widest font-bold flex items-center gap-2 border border-blue-500/30 px-4 py-2 rounded-lg hover:bg-blue-500/10 transition-colors"
-                    >
-                      <span>↻ Generate Another</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {recipes.map((recipe, index) => (
-                    <div key={recipe.id} className="animate-enter" style={{ animationDelay: `${index * 100}ms` }}>
-                      <RecipeCard recipe={recipe} onClick={setSelectedRecipe} />
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              !isGenerating && (
-                <div className="h-[60vh] flex flex-col items-center justify-center text-center opacity-30">
-                  <span className="text-4xl mb-4 grayscale">🍽️</span>
-                  <h3 className="text-lg font-medium text-white">Ready to Order</h3>
-                  <p className="max-w-xs mx-auto text-sm text-zinc-500 mt-2">
-                    Add ingredients on the left and click "Create Recipe" to start the AI engine.
-                  </p>
-                </div>
-              )
-            )}
-          </div>
+        {/* LOGO */}
+        <div className="mb-12 text-center select-none">
+          <h1 className="text-6xl md:text-8xl font-serif text-[#111111] tracking-tight leading-none mb-4">
+            CookNow
+          </h1>
+          <p className="text-sm md:text-base text-gray-400 font-light tracking-[0.2em] uppercase">
+            Curated AI Culinary Intelligence
+          </p>
         </div>
-      </section>
+
+        {/* SEARCH BAR */}
+        <form onSubmit={handleGenerate} className="w-full max-w-[600px] relative group z-10 mx-auto px-4">
+            <div className={`
+                flex items-center w-full px-8 py-5
+                bg-white border text-[#111111]
+                transition-all duration-500 rounded-none
+                ${isGenerating ? 'shadow-xl border-gray-200' : 'shadow-lg border-transparent hover:shadow-2xl hover:scale-[1.01]'}
+            `}>
+                <input
+                type="text"
+                className="flex-1 outline-none text-xl bg-transparent font-serif placeholder:font-sans placeholder-gray-300 placeholder:text-base placeholder:tracking-wide placeholder:uppercase placeholder:font-light"
+                placeholder="List available ingredients..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                disabled={isGenerating}
+                />
+
+                {isGenerating ? (
+                    <div className="w-5 h-5 border-[2px] border-black/10 border-t-black rounded-full animate-spin" />
+                ) : (
+                    <button type="submit" className="ml-4 text-gray-300 hover:text-black transition-colors">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    </button>
+                )}
+            </div>
+            <p className="text-xs text-gray-300 mt-4 text-center font-light tracking-wider">
+               SEPARATE INGREDIENTS WITH COMMAS OR SPACES
+            </p>
+        </form>
+
+        {/* BUTTONS */}
+        <div className="mt-10 flex flex-col md:flex-row gap-4 md:gap-6 opacity-60 hover:opacity-100 transition-opacity duration-500">
+          <button
+            onClick={() => handleGenerate()}
+            className="px-8 py-3 bg-transparent border border-black/5 hover:border-black/20 text-xs font-bold uppercase tracking-[0.15em] transition-all hover:bg-black hover:text-white"
+          >
+            Discover
+          </button>
+          <button
+            onClick={handleSurprise}
+            className="px-8 py-3 bg-transparent border border-black/5 hover:border-black/20 text-xs font-bold uppercase tracking-[0.15em] transition-all hover:bg-black hover:text-white"
+          >
+            Surprise Palette
+          </button>
+        </div>
+      </div>
 
       <RecipeModal
         recipe={selectedRecipe}

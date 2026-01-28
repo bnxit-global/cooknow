@@ -10,22 +10,29 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Playfair Display", "serif"],
       },
       colors: {
-        background: "#050505",
-        surface: "#0f0f0f",
+        background: "#05070A",
+        surface: "#0A0C10",
+        gold: {
+          DEFAULT: "#D4AF37",
+          soft: "rgba(212, 175, 55, 0.4)",
+          glow: "#F9E5BC",
+        },
         primary: {
-          DEFAULT: "#3b82f6", // Blue 500
-          glow: "#60a5fa",    // Blue 400
+          DEFAULT: "#D4AF37",
+          glow: "#F9E5BC",
         },
         accent: {
-          DEFAULT: "#8b5cf6", // Violet 500
-          glow: "#a78bfa",    // Violet 400
+          DEFAULT: "#D4AF37",
+          glow: "#F9E5BC",
         }
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'grid-pattern': "linear-gradient(to right, #ffffff05 1px, transparent 1px), linear-gradient(to bottom, #ffffff05 1px, transparent 1px)",
+        'chef-gradient': 'linear-gradient(to bottom, rgba(5, 7, 10, 0) 0%, rgba(5, 7, 10, 0.9) 100%)',
       },
     },
   },
