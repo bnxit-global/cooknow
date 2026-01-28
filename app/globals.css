@@ -13,8 +13,12 @@
   }
 }
 
-@layer components {
-  .google-button {
-    @apply bg-[#f8f9fa] border border-[#f8f9fa] text-[#3c4043] px-6 py-2 rounded text-sm font-medium hover:bg-[#f1f3f4] hover:border-[#dadce0] hover:text-[#202124] hover:shadow-sm transition-all;
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
