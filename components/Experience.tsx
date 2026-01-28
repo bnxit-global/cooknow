@@ -7,8 +7,10 @@ import {
   PerspectiveCamera,
 } from '@react-three/drei'
 import { Canvas, useFrame, type RootState } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, type ComponentType } from 'react'
 import * as THREE from 'three'
+
+type GeometryComponent = ComponentType<{ args?: number[] }>
 
 function FloatingElement({
   position,
@@ -19,7 +21,7 @@ function FloatingElement({
   position: [number, number, number]
   color: string
   speed: number
-  geometry: React.ElementType
+  geometry: GeometryComponent
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
 
