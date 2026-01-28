@@ -1,3 +1,4 @@
+import { Recipe } from '@/lib/types'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'edge'
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
         throw new Error(`Text Worker Failed: ${errorBody}`)
       }
 
-      recipe = (await textRes.json()) as any
+      recipe = (await textRes.json()) as Recipe
 
       // Ensure ID is unique even if hallucinated
       if (

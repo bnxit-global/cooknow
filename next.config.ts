@@ -1,15 +1,16 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "**",
+        protocol: 'https',
+        hostname: '**',
       },
     ],
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

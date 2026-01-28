@@ -1,7 +1,7 @@
 'use client'
 
 import { Recipe } from '@/lib/types'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 interface RecipeModalProps {
   recipe: Recipe | null
@@ -9,14 +9,10 @@ interface RecipeModalProps {
 }
 
 export default function RecipeModal({ recipe, onClose }: RecipeModalProps) {
-  const [isVisible, setIsVisible] = useState(false)
-
   useEffect(() => {
     if (recipe) {
-      setIsVisible(true)
       document.body.style.overflow = 'hidden'
     } else {
-      setIsVisible(false)
       document.body.style.overflow = 'auto'
     }
   }, [recipe])
@@ -76,9 +72,9 @@ export default function RecipeModal({ recipe, onClose }: RecipeModalProps) {
               <span className="px-4 py-1.5 border border-[#D4AF37] text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.2em]">
                 {recipe.cookingTime} min
               </span>
-              {(recipe as any).country && (
+              {recipe.country && (
                 <span className="px-4 py-1.5 bg-white/10 text-white text-[10px] font-bold uppercase tracking-[0.2em]">
-                  {(recipe as any).country}
+                  {recipe.country}
                 </span>
               )}
             </div>
@@ -88,7 +84,7 @@ export default function RecipeModal({ recipe, onClose }: RecipeModalProps) {
             </h2>
 
             <p className="text-white/80 text-lg md:text-xl font-light italic mb-16 leading-relaxed border-l-2 border-[#D4AF37] pl-8">
-              "{recipe.story}"
+              &quot;{recipe.story}&quot;
             </p>
 
             {/* Ingredients */}

@@ -45,12 +45,12 @@ export default function RecipeCard({ recipe, onClick }: RecipeCardProps) {
         </h3>
 
         <p className="text-sm text-white/70 font-light leading-relaxed line-clamp-3 italic">
-          "{recipe.story}"
+          &quot;{recipe.story}&quot;
         </p>
 
         <div className="mt-auto pt-4 flex items-center gap-3 overflow-hidden border-t border-white/10">
           <div className="h-[1px] w-6 bg-[#D4AF37] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]">
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50 group-hover:text-white transition-colors">
             View Recipe
           </span>
         </div>

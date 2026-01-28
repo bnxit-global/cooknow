@@ -1,5 +1,6 @@
 'use client'
 
+import Experience from '@/components/Experience'
 import RecipeCard from '@/components/RecipeCard'
 import RecipeModal from '@/components/RecipeModal'
 import allIngredients from '@/lib/ingredients.json'
@@ -306,14 +307,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen w-full relative text-black flex flex-col font-sans selection:bg-[#D4AF37]/20 overflow-x-hidden">
-      {/* Background Image with Overlay */}
-      <div
-        className="fixed inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-fixed"
-        aria-hidden="true"
-      >
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
-      </div>
+      {/* 3D Background Experience */}
+      <Experience />
 
       {/* HERO / SEARCH SECTION */}
       <div

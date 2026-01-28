@@ -1,5 +1,5 @@
 export default {
-  async fetch(request, env) {
+  async fetch(request: Request, env: any) {
     const url = new URL(request.url)
 
     // -----------------------------
@@ -9,9 +9,24 @@ export default {
       return new Response(
         JSON.stringify({
           popular: [
-            { id: '101', name: 'Truffle Risotto', popularity: '98%', region: 'Italy' },
-            { id: '102', name: 'Wagyu Beef Bowl', popularity: '84%', region: 'Japan' },
-            { id: '103', name: 'Lobster Thermidor', popularity: '72%', region: 'France' },
+            {
+              id: '101',
+              name: 'Truffle Risotto',
+              popularity: '98%',
+              region: 'Italy',
+            },
+            {
+              id: '102',
+              name: 'Wagyu Beef Bowl',
+              popularity: '84%',
+              region: 'Japan',
+            },
+            {
+              id: '103',
+              name: 'Lobster Thermidor',
+              popularity: '72%',
+              region: 'France',
+            },
           ],
           history: [],
           inventory: ['Egg', 'Rice', 'Tomato', 'Basil'],
@@ -30,7 +45,9 @@ export default {
 
         const userPrompt = body.prompt
         const recipeName = (body.recipeName || '').trim()
-        const ingredients = Array.isArray(body.ingredients) ? body.ingredients : []
+        const ingredients = Array.isArray(body.ingredients)
+          ? body.ingredients
+          : []
         const country = (body.country || '').trim()
 
         let prompt = userPrompt
@@ -44,8 +61,7 @@ export default {
             'Avant-Garde',
           ]
 
-          const style =
-            styleList[Math.floor(Math.random() * styleList.length)]
+          const style = styleList[Math.floor(Math.random() * styleList.length)]
 
           const parts = [
             `You are a culinary AI. Create a UNIQUE ${style} style 1-person recipe.`,
@@ -56,7 +72,9 @@ export default {
           }
 
           if (ingredients.length) {
-            parts.push(`Use some or all of these ingredients: ${ingredients.join(', ')}.`)
+            parts.push(
+              `Use some or all of these ingredients: ${ingredients.join(', ')}.`
+            )
           }
 
           if (country) {
@@ -89,9 +107,7 @@ id, name, country, story, cookingTime, ingredients (array), instructions (array)
           const raw =
             aiResponse.response || aiResponse.text || JSON.stringify(aiResponse)
 
-          recipe = JSON.parse(
-            raw.replace(/```json|```/gi, '').trim()
-          )
+          recipe = JSON.parse(raw.replace(/```json|```/gi, '').trim())
         } catch {
           recipe = {
             id: `error-${Date.now()}`,
