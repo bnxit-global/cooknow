@@ -188,9 +188,12 @@ export function findRecipes(userIngredients: string[]): Recipe[] {
     // If it's a "universal" recipe, it always matches if user has ingredients
     if (recipe.ingredients.includes('any')) return true
 
-    const matchCount = recipe.ingredients.filter((ing) =>
-      userIngredients.some((ui) => ing.toLowerCase().includes(ui.toLowerCase()))
-    ).length
+    const matchCount = recipe.ingredients.filter((ing) => {
+      const ingName = typeof ing === 'string' ? ing : ing.name
+      return userIngredients.some((ui) =>
+        ingName.toLowerCase().includes(ui.toLowerCase())
+      )
+    }).length
 
     return matchCount > 0
   })
