@@ -80,76 +80,98 @@ export async function POST(req: NextRequest) {
       `
     }
 
-    // 1. Generate text using Worker
-    let recipe
-    try {
-      const textRes = await fetch(WORKER_TEXT_URL!, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, ingredients, userInput, country }),
-      })
+    // PARALLEL EXECUTION: Define promises for both operations
 
-      if (!textRes.ok) {
-        const errorBody = await textRes.text()
-        console.error(`Text Worker Error (${textRes.status}):`, errorBody)
-        throw new Error(`Text Worker Failed: ${errorBody}`)
+    // 1. Text Generation Promise
+    const textGenPromise = (async () => {
+      try {
+        const textRes = await fetch(WORKER_TEXT_URL!, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, ingredients, userInput, country }),
+        })
+
+        if (!textRes.ok) {
+          const errorBody = await textRes.text()
+          console.error(`Text Worker Error (${textRes.status}):`, errorBody)
+          throw new Error(`Text Worker Failed: ${errorBody}`)
+        }
+
+        const recipe = (await textRes.json()) as Recipe
+
+        // Ensure ID is unique even if hallucinated
+        if (
+          !recipe.id ||
+          recipe.id.includes('gen-') ||
+          recipe.id.includes('error-')
+        ) {
+          recipe.id = uniqueId
+        }
+        // Ensure recipe includes country information
+        if (!recipe.country) recipe.country = country || 'Global'
+
+        return recipe
+      } catch (e) {
+         console.error('Text Gen Error', e)
+         throw e
+      }
+    })()
+
+    // 2. Image Generation Promise
+    // Construct prompt immediately from inputs so we don't have to wait for text gen
+    const imageGenPromise = (async () => {
+      // Best-effort prompt construction from raw inputs
+      let subject = ''
+      if (isRecipeNameRequest) {
+        subject = userInput
+      } else {
+        // Use up to 5 ingredients to describe the dish
+        const ingList = ingredients.slice(0, 5).join(', ')
+        subject = `gourmet dish featuring ${ingList}`
       }
 
-      recipe = (await textRes.json()) as Recipe
+      const countryPhrase =
+        country && country !== 'Global' && country !== 'Other'
+          ? `${country} cuisine styling`
+          : ''
 
-      // Ensure ID is unique even if hallucinated
-      if (
-        !recipe.id ||
-        recipe.id.includes('gen-') ||
-        recipe.id.includes('error-')
-      ) {
-        recipe.id = uniqueId
+      const imagePrompt = `professional food photography of ${subject}, ${randomStyle} plating, ${countryPhrase}, gourmet presentation, macro shot, highly detailed, 8k, cinematic lighting, soft bokeh background`
+
+      try {
+        const controller = new AbortController()
+        // Enforce 15s timeout to be safe, though parallel execution helps overall time
+        const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+        const imageRes = await fetch(WORKER_IMAGE_URL!, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: imagePrompt }),
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+
+        if (!imageRes.ok) {
+           // If it fails, just return null, we'll handle fallback after Promise.all
+           return null
+        }
+
+        const arrayBuffer = await imageRes.arrayBuffer()
+        const base64 = Buffer.from(arrayBuffer).toString('base64')
+        return `data:image/png;base64,${base64}`
+      } catch (imageError) {
+        console.error('Image Generation Error (Parallel):', imageError)
+        return null
       }
+    })()
 
-      // Ensure recipe includes country information
-      if (!recipe.country) recipe.country = country || 'Global'
-    } catch (e) {
-      console.error('Text Gen Error', e)
-      // Fallback or re-throw
-      throw new Error(`Failed to generate recipe text: ${e}`)
-    }
+    // Execute both in parallel
+    const [recipe, generatedImageUrl] = await Promise.all([textGenPromise, imageGenPromise])
 
-    // 2. Generate Image using Worker
-    // Create a much more descriptive prompt based on the SPECIFIC recipe
-    const ingredientList = recipe.ingredients.slice(0, 5).join(', ')
-    const countryPhrase =
-      recipe.country && recipe.country !== 'Global'
-        ? `${recipe.country} cuisine styling`
-        : ''
-    const imagePrompt = `professional food photography of ${recipe.name}, featuring ${ingredientList}, ${randomStyle} plating, ${countryPhrase}, gourmet presentation, macro shot, highly detailed, 8k, cinematic lighting, soft bokeh background`
-
-    try {
-      const controller = new AbortController()
-      // Enforce 15s timeout to avoid Vercel 504 (Total limit is 30s)
-      const timeoutId = setTimeout(() => controller.abort(), 15000)
-
-      const imageRes = await fetch(WORKER_IMAGE_URL!, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: imagePrompt }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (!imageRes.ok) {
-        const errorBody = await imageRes.text()
-        console.error(`Image Worker Error (${imageRes.status}):`, errorBody)
-        throw new Error(`Image Worker Failed: ${errorBody}`)
-      }
-
-      const arrayBuffer = await imageRes.arrayBuffer()
-      const base64 = Buffer.from(arrayBuffer).toString('base64')
-      recipe.imageUrl = `data:image/png;base64,${base64}`
-    } catch (imageError) {
-      console.error('Image Generation Error:', imageError)
-      // Robust Fallback Image (Generic Food)
-      recipe.imageUrl =
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80'
+    // Assign image (generated or fallback)
+    if (generatedImageUrl) {
+        recipe.imageUrl = generatedImageUrl
+    } else {
+        recipe.imageUrl = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80'
     }
 
     return NextResponse.json(recipe)
