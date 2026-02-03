@@ -124,11 +124,17 @@ export async function POST(req: NextRequest) {
     const imagePrompt = `professional food photography of ${recipe.name}, featuring ${ingredientList}, ${randomStyle} plating, ${countryPhrase}, gourmet presentation, macro shot, highly detailed, 8k, cinematic lighting, soft bokeh background`
 
     try {
+      const controller = new AbortController()
+      // Enforce 15s timeout to avoid Vercel 504 (Total limit is 30s)
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
       const imageRes = await fetch(WORKER_IMAGE_URL!, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: imagePrompt }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
 
       if (!imageRes.ok) {
         const errorBody = await imageRes.text()
