@@ -1,7 +1,8 @@
 import { Recipe } from '@/lib/types'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'edge'
+// export const runtime = 'edge' // Remove edge runtime constraint
+export const maxDuration = 60 // Enable 60s timeout on Vercel Node.js (Hobby)
 
 const WORKER_TEXT_URL = process.env.NEXT_PUBLIC_WORKER_TEXT_URL
 const WORKER_IMAGE_URL = process.env.NEXT_PUBLIC_WORKER_IMAGE_URL
@@ -139,8 +140,8 @@ export async function POST(req: NextRequest) {
 
       try {
         const controller = new AbortController()
-        // Enforce 15s timeout to be safe, though parallel execution helps overall time
-        const timeoutId = setTimeout(() => controller.abort(), 15000)
+        // Enforce 25s timeout (within 60s maxDuration)
+        const timeoutId = setTimeout(() => controller.abort(), 25000)
 
         const imageRes = await fetch(WORKER_IMAGE_URL!, {
           method: 'POST',
