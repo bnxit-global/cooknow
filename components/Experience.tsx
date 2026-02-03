@@ -1,13 +1,13 @@
 'use client'
 
 import {
-  ContactShadows,
-  Environment,
-  Float,
-  PerspectiveCamera,
+    ContactShadows,
+    Environment,
+    Float,
+    PerspectiveCamera,
 } from '@react-three/drei'
 import { Canvas, useFrame, type RootState } from '@react-three/fiber'
-import { useRef, type ComponentType } from 'react'
+import { useRef } from 'react'
 import * as THREE from 'three'
 
 
@@ -16,11 +16,13 @@ function FloatingElement({
   color,
   speed,
   geometry: Geometry,
+  args = [1, 0],
 }: {
   position: [number, number, number]
   color: string
   speed: number
   geometry: new (...args: number[]) => THREE.BufferGeometry
+  args?: number[]
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
 
@@ -34,7 +36,7 @@ function FloatingElement({
 
   return (
     <mesh ref={meshRef} position={position}>
-      <primitive object={new Geometry(1, 0)} />
+      <primitive object={new Geometry(...args)} />
       <meshStandardMaterial
         color={color}
         roughness={0.1}
@@ -89,18 +91,21 @@ export default function Experience() {
               color="#4F46E5"
               speed={0.5}
               geometry={THREE.IcosahedronGeometry}
+              args={[1, 0]}
             />
             <FloatingElement
               position={[5, -1, -8]}
               color="#ffffff"
               speed={0.3}
               geometry={THREE.TorusKnotGeometry}
+              args={[0.6, 0.2, 128, 16]}
             />
             <FloatingElement
               position={[-3, -4, -4]}
               color="#6366f1"
               speed={0.4}
               geometry={THREE.OctahedronGeometry}
+              args={[1, 0]}
             />
           </Float>
         </group>

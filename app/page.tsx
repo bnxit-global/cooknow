@@ -1,11 +1,15 @@
 'use client'
 
-import Experience from '@/components/Experience'
 import RecipeCard from '@/components/RecipeCard'
 import RecipeModal from '@/components/RecipeModal'
 import allIngredients from '@/lib/ingredients.json'
 import { Recipe } from '@/lib/types'
+import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
+
+const Experience = dynamic(() => import('@/components/Experience'), {
+  ssr: false,
+})
 
 const COUNTRIES = [
   'Afghanistan',
