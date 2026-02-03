@@ -100,7 +100,9 @@ export default function RecipeModal({ recipe, onClose }: RecipeModalProps) {
                   >
                     <span className="w-1.5 h-1.5 bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]"></span>
                     <span className="group-hover:translate-x-1 transition-transform border-b border-white/20 pb-0.5">
-                      {ing}
+                      {typeof ing === 'string'
+                        ? ing
+                        : `${ing.quantity || ''} ${ing.name} ${ing.preparation || ''}`.trim()}
                     </span>
                   </li>
                 ))}

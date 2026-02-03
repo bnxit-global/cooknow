@@ -1,8 +1,14 @@
+export interface IngredientObject {
+  name: string
+  quantity?: string
+  preparation?: string
+}
+
 export interface Recipe {
   id: string
   name: string
   country?: string
-  ingredients: string[]
+  ingredients: (string | IngredientObject)[]
   instructions: string[]
   cookingTime: string
   imageUrl: string
