@@ -10,7 +10,6 @@ import { Canvas, useFrame, type RootState } from '@react-three/fiber'
 import { useRef, type ComponentType } from 'react'
 import * as THREE from 'three'
 
-type GeometryComponent = ComponentType<{ args?: number[] }>
 
 function FloatingElement({
   position,
@@ -21,7 +20,7 @@ function FloatingElement({
   position: [number, number, number]
   color: string
   speed: number
-  geometry: GeometryComponent
+  geometry: new (...args: number[]) => THREE.BufferGeometry
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
 
@@ -35,7 +34,7 @@ function FloatingElement({
 
   return (
     <mesh ref={meshRef} position={position}>
-      <Geometry args={[1, 0, 0]} />
+      <primitive object={new Geometry(1, 0)} />
       <meshStandardMaterial
         color={color}
         roughness={0.1}
